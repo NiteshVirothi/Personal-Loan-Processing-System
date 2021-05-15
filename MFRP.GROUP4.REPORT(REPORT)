@@ -1,0 +1,24 @@
+//TCHN197P JOB NOTIFY=&SYSUID,CLASS=A,MSGCLASS=X,MSGLEVEL=(1,1),        00010000
+//             REGION=0M                                                00020000
+//*--------------------------------------------------------------------*00220000
+//* PRE DELETION STEP FOR CI1 EXTRACTION FILE                           00230004
+//*--------------------------------------------------------------------*00240000
+//STEP002  EXEC PGM=IEFBR14                                             00260007
+//SYSPRINT DD SYSOUT=*                                                  00260101
+//SYSOUT DD SYSOUT=*                                                    00261001
+//PREDEL   DD  DSN=MFRP.GROUP4.CI1.PS,                                  00270005
+//             DISP=(MOD,DELETE,DELETE),SPACE=(TRK,(10,10)),            00280000
+//             DCB=(LRECL=80,RECFM=FB,DSORG=PS)                         00300006
+//STEP003 EXEC PGM=SORT                                                 00320007
+//SYSPRINT DD SYSOUT=*                                                  00321001
+//SYSOUT DD SYSOUT=*                                                    00322001
+//SORTIN DD DSN=MFRP.GROUP4.PAYDET.PS,DISP=SHR                          00323004
+//SORTOUT  DD  DSN=MFRP.GROUP4.CI1.PS,                                  00330005
+//             DISP=(NEW,CATLG,DELETE),                                 00340004
+//             SPACE=(TRK,(10,10)),                                     00350002
+//             DCB=(LRECL=80,RECFM=FB,DSORG=PS)                         00360006
+//SYSIN DD *                                                            00361004
+         SORT FIELDS=COPY                                               00362007
+         INCLUDE COND=(49,3,CH,EQ,C'CI1')                               00363008
+/*                                                                      00370002
+

@@ -1,0 +1,40 @@
+//TCHN197P JOB 'AC123',CLASS=A,MSGCLASS=A,MSGLEVEL=(1,1),               00000100
+//     TIME=(0,59),REGION=5M,PRTY=15,NOTIFY=&SYSUID                     00000200
+//*--------------------------------------------------------------------*00000201
+//*                 PRE-DELETING THE FILES                              00000202
+//*--------------------------------------------------------------------*00000203
+//STEP0  EXEC  PGM=IEFBR14                                              00000210
+//SYSOUT   DD  SYSOUT=*                                                 00000220
+//SYSPRINT DD  SYSOUT=*                                                 00000230
+//DD1      DD  DSN=MFRP.GROUP4.MAXRET.PS,                               00000240
+//             DISP=(MOD,DELETE,DELETE),                                00000250
+//             SPACE=(TRK,(1,1),RLSE)                                   00000260
+//DD1      DD  DSN=MFRP.GROUP4.GENUINE.PS,                              00000261
+//             DISP=(MOD,DELETE,DELETE),                                00000262
+//             SPACE=(TRK,(1,1),RLSE)                                   00000263
+//DD1      DD  DSN=MFRP.GROUP4.HIGHSPD.PS,                              00000264
+//             DISP=(MOD,DELETE,DELETE),                                00000265
+//             SPACE=(TRK,(1,1),RLSE)                                   00000266
+//*-------------------------------------------------------------------* 00000270
+//*    SPLITTING THE FILES BASED ON THE COLLECTION                      00000280
+//*-------------------------------------------------------------------* 00000290
+//STEP01 EXEC PGM=SORT                                                  00000300
+//SORTIN DD DSN=MFRP.GROUP4.PAYDET.PS,DISP=SHR                          00000400
+//SORTOUT DD DSN=MFRP.GROUP4.MAXRET.PS,DISP=(NEW,CATLG,DELETE),         00000500
+//           SPACE=(TRK,(10,10),RLSE),                                  00000600
+//           DCB=(RECFM=FB,LRECL=80,BLKSIZE=800)                        00000700
+//SORTOUT1 DD DSN=MFRP.GROUP4.GENUINE.PS,DISP=(NEW,CATLG,DELETE),       00000800
+//           SPACE=(TRK,(10,10),RLSE),                                  00000900
+//           DCB=(RECFM=FB,LRECL=80,BLKSIZE=800)                        00001000
+//SORTOUT2 DD DSN=MFRP.GROUP4.HIGHSPD.PS,DISP=(NEW,CATLG,DELETE),       00001100
+//           SPACE=(TRK,(10,10),RLSE),                                  00001200
+//           DCB=(RECFM=FB,LRECL=80,BLKSIZE=800)                        00001300
+//SYSPRINT DD SYSOUT=*                                                  00001400
+//SYSOUT DD SYSOUT=*                                                    00001500
+//SYSIN DD *                                                            00001600
+   SORT FIELDS=COPY                                                     00001700
+   OUTFIL FNAMES=SORTOUT,INCLUDE=(1,10,CH,EQ,C'MAXRETURN')              00001701
+   OUTFIL FNAMES=SORTOUT1,INCLUDE=(1,10,CH,EQ,C'GENUINE')               00001900
+   OUTFIL FNAMES=SORTOUT2,INCLUDE=(1,10,CH,EQ,C'HIGHSPEED')             00002000
+/*                                                                      00002100
+

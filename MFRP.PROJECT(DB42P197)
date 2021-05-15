@@ -1,0 +1,47 @@
+      ******************************************************************
+      * DCLGEN TABLE(LOAN_DB)                                          *
+      *        LIBRARY(TCHN197.MFRP.PROJECT(DB42P197))                 *
+      *        LANGUAGE(COBOL)                                         *
+      *        QUOTE                                                   *
+      * ... IS THE DCLGEN COMMAND THAT MADE THE FOLLOWING STATEMENTS   *
+      ******************************************************************
+           EXEC SQL DECLARE LOAN_DB TABLE
+           ( APPLICANT_ID                   CHAR(10) NOT NULL,
+             LOAN_ID                        CHAR(2) NOT NULL,
+             LOAN_TYPE                      CHAR(10) NOT NULL,
+             APPROVED_LOAN_AMOUNT           INTEGER NOT NULL,
+             LOAN_APPROVED_DATE             DATE NOT NULL,
+             LOAN_TENURE                    CHAR(2) NOT NULL,
+             FIXED_INTEREST_RATE            DECIMAL(3, 1) NOT NULL,
+             LOAN_INDICATOR                 CHAR(5),
+             RE_PAYMENT_DAY                 CHAR(2) NOT NULL,
+             TOTAL_REPAYMENT_AMOUNT         INTEGER NOT NULL,
+             MONTHLY_REPAYMENT_AMOUNT       DECIMAL(9, 2) NOT NULL,
+             NEXT_REPAYMENT_DUE_DATE        DATE NOT NULL,
+             BALANCE_AMOUNT                 INTEGER NOT NULL
+           ) END-EXEC.
+      ******************************************************************
+      * COBOL DECLARATION FOR TABLE LOAN_DB                            *
+      ******************************************************************
+       01  DCLLOAN-DB.
+           10 L-APPLICANT-ID         PIC X(10).
+           10 LOAN-ID              PIC X(2).
+           10 LOAN-TYPE            PIC X(10).
+           10 APPROVED-LOAN-AMOUNT
+              PIC S9(9) USAGE COMP.
+           10 LOAN-APPROVED-DATE   PIC X(10).
+           10 LOAN-TENURE          PIC X(2).
+           10 FIXED-INTEREST-RATE  PIC S9(2)V9(1) USAGE COMP-3.
+           10 LOAN-INDICATOR       PIC X(5).
+           10 RE-PAYMENT-DAY       PIC X(2).
+           10 TOTAL-REPAYMENT-AMOUNT
+              PIC S9(9) USAGE COMP.
+           10 MONTHLY-REPAYMENT-AMOUNT
+              PIC S9(7)V9(2) USAGE COMP-3.
+           10 NEXT-REPAYMENT-DUE-DATE
+              PIC X(10).
+           10 BALANCE-AMOUNT       PIC S9(9) USAGE COMP.
+      ******************************************************************
+      * THE NUMBER OF COLUMNS DESCRIBED BY THIS DECLARATION IS 13      *
+      ******************************************************************
+

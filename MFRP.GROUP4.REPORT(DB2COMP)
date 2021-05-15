@@ -1,0 +1,95 @@
+//TCHN197A JOB NOTIFY=&SYSUID,CLASS=A,MSGCLASS=X,MSGLEVEL=(1,1),        00010052
+//             REGION=0M                                                00011030
+//**********************************************************************00020000
+//*                          INPUT AREA                                *00030000
+//**********************************************************************00040000
+//* CUSTOMISE THE FOLLOWING                                             00050000
+//*  ENTER MEMBER,USERID,PLANAME  @ BELOW                               00060000
+//**********************************************************************00070000
+// SET MEMBER=CA12R197                   <- MEMBER NAME                 00071055
+// SET SOURCE=TCHN197.MFRP.GROUP4.REPORT  <- PROGRAM DATASET            00080057
+// SET INCLUDE=TCHN197.MFRP.PROJECT                                     00090057
+// SET LOADLIB=TCHN197.COBOL.LOAD          <- LOAD LIBRARY              00100053
+// SET DBRMLIB=TCHN197.DB2.DBRM.PDS      <- DBRM LIBRARY                00110054
+//*********************************************************             00120000
+//*       DB2 PRECOMPILE THE COBOL PROGRAM                              00130000
+//*********************************************************             00140000
+//**********************************************************************00150026
+//*       DB2 PRECOMPILE THE COBOL PROGRAM                             *00160026
+//**********************************************************************00170026
+//DB2PCOMP EXEC PGM=DSNHPC,                                             00180026
+//       PARM='HOST(IBMCOB),XREF,SOURCE,FLAG(I),APOST,NEWFUN(YES)'      00190026
+//STEPLIB  DD  DISP=SHR,DSN=DSNC10.SDSNLOAD                             00200027
+//DBRMLIB  DD  DISP=SHR,DSN=&DBRMLIB(&MEMBER)                           00210026
+//SYSCIN   DD  DSN=&&DSNHOUT,DISP=(NEW,PASS,DELETE),UNIT=SYSALLDA,      00220026
+//             SPACE=(800,(500,500))                                    00230026
+//SYSLIB   DD  DISP=SHR,DSN=&INCLUDE                                    00240026
+//SYSPRINT DD  SYSOUT=*                                                 00250026
+//SYSTERM  DD  SYSOUT=*                                                 00260026
+//SYSUDUMP DD  SYSOUT=*                                                 00270026
+//SYSUT1   DD  SPACE=(800,(500,500),,,ROUND),UNIT=SYSALLDA              00280026
+//SYSUT2   DD  SPACE=(800,(500,500),,,ROUND),UNIT=SYSALLDA              00290026
+//SYSIN    DD  DISP=SHR,DSN=&SOURCE(&MEMBER)                            00300026
+//**********************************************************************00310026
+//*       COBOL COMPILE                                                *00320026
+//**********************************************************************00330026
+//COBCOMP  EXEC PGM=IGYCRCTL,COND=(4,LT,DB2PCOMP),                      00340026
+//            PARM='XREF,OFFSET,MAP,RENT,NODYNAM,ARITH(EXTEND)'         00350026
+//SYSIN    DD DSN=&&DSNHOUT,DISP=(OLD,DELETE)                           00360026
+//*SYSLIB   DD DSN=&COBCOPY,DISP=SHR                                    00370026
+//SYSLIN   DD DSN=&&LOADSET,DISP=(MOD,PASS),UNIT=SYSALLDA,              00380026
+//            SPACE=(800,(500,500))                                     00390026
+//SYSPRINT DD SYSOUT=*                                                  00400026
+//SYSUDUMP DD SYSOUT=*                                                  00410026
+//SYSUT1   DD SPACE=(800,(500,500),,,ROUND),UNIT=SYSALLDA               00420026
+//SYSUT2   DD SPACE=(800,(500,500),,,ROUND),UNIT=SYSALLDA               00430026
+//SYSUT3   DD SPACE=(800,(500,500),,,ROUND),UNIT=SYSALLDA               00440026
+//SYSUT4   DD SPACE=(800,(500,500),,,ROUND),UNIT=SYSALLDA               00450026
+//SYSUT5   DD SPACE=(800,(500,500),,,ROUND),UNIT=SYSALLDA               00460026
+//SYSUT6   DD SPACE=(800,(500,500),,,ROUND),UNIT=SYSALLDA               00470026
+//SYSUT7   DD SPACE=(800,(500,500),,,ROUND),UNIT=SYSALLDA               00480026
+//SYSUT8   DD SPACE=(800,(500,500),,,ROUND),UNIT=SYSALLDA               00490026
+//SYSUT9   DD SPACE=(800,(500,500),,,ROUND),UNIT=SYSALLDA               00500026
+//SYSUT10  DD SPACE=(800,(500,500),,,ROUND),UNIT=SYSALLDA               00510026
+//SYSUT11  DD SPACE=(800,(500,500),,,ROUND),UNIT=SYSALLDA               00520026
+//SYSUT12  DD SPACE=(800,(500,500),,,ROUND),UNIT=SYSALLDA               00530026
+//SYSUT13  DD SPACE=(800,(500,500),,,ROUND),UNIT=SYSALLDA               00540026
+//SYSUT14  DD SPACE=(800,(500,500),,,ROUND),UNIT=SYSALLDA               00550026
+//SYSUT15  DD SPACE=(800,(500,500),,,ROUND),UNIT=SYSALLDA               00560026
+//SYSMDECK DD SPACE=(800,(500,500),,,ROUND),UNIT=SYSALLDA               00570026
+//**********************************************************************00580026
+//*       LINK EDIT THE PROGRAM                                        *00590026
+//**********************************************************************00600026
+//LINKEDIT EXEC PGM=IEWL,COND=(4,LT,COBCOMP),                           00610026
+//            PARM='MAP,LIST,XREF,LET,AMODE=31,RMODE=ANY,RENT,REUS'     00620026
+//SYSLIB   DD DISP=SHR,DSN=DSNC10.SDSNLOAD                              00630027
+//         DD DISP=SHR,DSN=CEE.SCEELKED                                 00640026
+//         DD DISP=SHR,DSN=CEE.SCEERUN                                  00650026
+//         DD DISP=SHR,DSN=ISP.SISPLOAD                                 00660026
+//         DD DISP=SHR,DSN=&LOADLIB                                     00670026
+//SYSLIN   DD DSN=&&LOADSET,DISP=(OLD,DELETE)                           00680026
+//SYSLMOD  DD DISP=SHR,DSN=&LOADLIB(&MEMBER)                            00690026
+//SYSPRINT DD SYSOUT=*                                                  00700026
+//SYSUDUMP DD SYSOUT=*                                                  00710026
+//SYSUT1   DD SPACE=(1024,(50,50)),UNIT=SYSALLDA                        00720026
+//**********************************************************************00721026
+//*       BIND THE PROGRAM                                             *00722026
+//**********************************************************************00723026
+//BIND EXEC PGM=IKJEFT01,COND=(4,LT,LINKEDIT)                           00724026
+//STEPLIB  DD  DISP=SHR,DSN=DSNC10.SDSNLOAD                             00725027
+//DBRMLIB  DD  DISP=OLD,DSN=&DBRMLIB(&MEMBER)                           00726026
+//SYSPRINT DD  SYSOUT=*                                                 00727026
+//SYSTSPRT DD  SYSOUT=*                                                 00728026
+//SYSUDUMP DD  SYSOUT=*                                                 00729026
+//**********************************************************************00729126
+//* SPECIFY YOUR PLAN NAME WITHIN PLAN PARANTHESIS '()'                *00729226
+//* SPECIFY YOUR PROGRAM NAME WITHIN MEMBER PARANTHESIS                *00729326
+//* SPECIFY YOUR USERID WITHIN QUALIFIER PARANTHESIS                   *00729426
+//**********************************************************************00729526
+//SYSTSIN  DD *                                                         00729626
+  DSN SYSTEM(DSN1)                                                      00731027
+  BIND PLAN(TCHN197L) -                                                 00740054
+  MEMBER(CA12R197) QUALIFIER(TCHN197) ACTION(REPLACE)                   00750055
+  END                                                                   00760000
+/*                                                                      00770000
+

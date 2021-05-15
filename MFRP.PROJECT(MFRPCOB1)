@@ -1,0 +1,375 @@
+000100 IDENTIFICATION DIVISION.
+000200 PROGRAM-ID.   MFRPCOB1.
+000600******************************************************************
+000700***          BRIEF  PROGRAM DESCRIPTION                        ***
+000800******************************************************************
+000900*AUTHOR             : COGNIZANT.
+001000*DATE-WRITTEN       : 03-MAY-2021
+001100*PROGRAM OBJECTIVE  : UPDATE THE RECORDS INTO THE VSAM MASTER
+001110*                   : PAYMENT KSDS FILE BY PERFORMING SOME
+      *                   : COMPUTATIONS.
+001300*OUTPUT             : KSDS FILE WHICH HAVE THE ACTIVE LOANS
+001400*ENTRY FROM         : ONE OTHER PROGRAM CALLS THIS PROGRAM.
+001500*REMARKS            :
+001700*TABLES SELECTED    : LOAN_DB,PAYMENT_DB.
+001800*TABLES UPDATED     : LOAN_DB.
+002000*INPUT FILES        : NONE.
+002100*OUTPUT FILES       : VSAM MASTER PAYMENT FILE
+002200******************************************************************
+002300*                   MAINTENANCE LOG
+002400******************************************************************
+002500*  REVISION NO.| DATE MODIFIED | AUTHOR    |  COMMENTS
+002600******************************************************************
+002700*    V1.0      | 03-MAY-2021   | COGNIZANT |  INITIAL VERSION
+002800******************************************************************
+002900*-----------------------------------------------------------*
+003000 ENVIRONMENT DIVISION.
+003100 CONFIGURATION SECTION.
+003200 INPUT-OUTPUT SECTION.
+003300 FILE-CONTROL.
+003304*--------------------------------------------------------------*
+003304*--------------------------------------------------------------*
+003305      SELECT OUTFILE ASSIGN TO OUTDD
+003306      ORGANIZATION IS INDEXED
+003307      ACCESS MODE IS SEQUENTIAL
+003308      RECORD KEY IS WS-OUT-APP-ID
+003309      FILE STATUS IS WS-OUT-FS.
+003310*
+003315 DATA DIVISION.
+003316 FILE SECTION.
+003317
+003600 FD OUTFILE
+003700     RECORD CONTAINS 300 CHARACTERS.
+003800 01 OUT-FILE-DETAILS.
+010600    05 WS-OUT-APP-ID                  PIC X(10).
+010700    05 FILLER                         PIC X(01).
+012402    05 WS-OUT-LOAN-ID                 PIC X(02).
+012403    05 FILLER                         PIC X(01).
+013701    05 WS-OUT-COLLECTION              PIC X(12).
+013702    05 FILLER                         PIC X(01).
+013703    05 WS-TOTAL-AMOUNT                PIC 9(10).
+004000    05 FILLER                         PIC X(263).
+005200*----------------------------------------------------------------*
+005300 WORKING-STORAGE SECTION.
+005400*
+003293 01  WS-FILE-STATUS.
+003294     05 WS-OUT-FS            PIC X(02).
+003295        88 PS1-FILE-OPENED       VALUE '00'.
+003300******************************************************************00340000
+003400*    ACCUMULATOR VARIABLE DECLARATION                             00350000
+003500******************************************************************00360000
+003600 01 WA-ACCUMULATOR.                                               00370000
+003700     05 WA-FETCH-COUNT                   PIC S9(9) COMP VALUE 0.  00444006
+004000     05 WA-UPDATE-COUNT                  PIC S9(9) COMP VALUE 0.  00445106
+006100******************************************************************00480000
+006200*VARIABLES TO HOLD SQL ERROR CODES & ERROR MESSAGES               00490000
+006300******************************************************************00500000
+006400 01 WW-ERROR-MSG.                                                 00370000
+006500     05 WW-ERR-MSG.                                               00380000
+006600        10 WW-ERR-LEN                    PIC S9(4) COMP VALUE 800.00390000
+006700        10 WW-ERR-TEXT                   PIC X(80)                00400000
+006800                          OCCURS 10 TIMES INDEXED BY WS-INX.      00410000
+S06900     05 WW-ERR-LRECL                     PIC S9(9) COMP VALUE 80. 00420000
+007000     05 WW-DB2-ERRMSG-IDX                PIC 9(2).                00430000
+007100     05 WW-ERROR-MESSAGE                 PIC X(120).              00440000
+007200*                                                                 00510000
+007300 01 WW-SQLCODE-DEF.                                               00370000
+007400     05 WW-SQLCODE-CODE                  PIC S9(3)                00450000
+007500                                            SIGN LEADING SEPARATE.00460000
+007600     05 WW-SQL-ERR-CODE                 PIC  S9(3)                00520000
+007700                                            SIGN LEADING SEPARATE.00530000
+007800           88 WW-END-OF-TABLE              VALUE +100.            00540000
+007900           88 WW-SQL-OPERATION-SUCCESS     VALUE +000.            00550000
+008000           88 WW-TABLE-NOT-FOUND           VALUE -204.            00560000
+008100           88 WW-CURSOR-OPEN-FAIL          VALUE -501.            00570000
+008200           88 WW-CURSOR-ALREADY-OPEN       VALUE -502.            00580000
+008300           88 WW-ILLEGAL-SYMBOL            VALUES -104, -199.     00590000
+006602 01 WS-DATE                PIC X(10).
+006603 01 WS-YEAR                PIC 9(04).
+006604 01 WS-MON                 PIC 9(02).
+006605 01 WS-DAY                 PIC 9(02).
+013800*--------------------------------------------------------------*
+013801*   INCLUDE DCLGEN
+013802*--------------------------------------------------------------*
+013803       EXEC SQL
+013804         INCLUDE SQLCA
+013805       END-EXEC.
+013806*
+013807       EXEC SQL
+013808         INCLUDE DB12P197
+013809       END-EXEC.
+013810*
+013820       EXEC SQL
+013830         INCLUDE DB42P197
+013840       END-EXEC.
+013850*
+013860       EXEC SQL
+013870         INCLUDE DB32P197
+013871       END-EXEC.
+013872*--------------------------------------------------------------*
+027100*CURSOR DECLARATION
+027110*--------------------------------------------------------------*
+027200        EXEC SQL
+027300          DECLARE C1 CURSOR FOR
+027400             SELECT P.APPLICANT_ID,
+027500                    P.LOAN_ID,P.PREVIOUS_BAL_AMT,
+027600                    P.COLLECTION,P.CURRENT_BAL_AMT,
+                          P.AMOUNT_PAID_DATE,
+                          P.AMMOUNT_PAID,
+                          L.APPLICANT_ID,
+                          L.LOAN_INDICATOR,
+                          L.BALANCE_AMOUNT
+                          FROM PAYMENT_DB P JOIN
+                          LOAN_DB L ON
+                          P.APPLICANT_ID = L.APPLICANT_ID
+028600        END-EXEC.
+030500*----------------------------------------------------------------*
+030600 PROCEDURE DIVISION.
+030700*----------------------------------------------------------------*
+011900 0000-MAINLINE.                                                   01150000
+012000                                                                  01170001
+012100     PERFORM 1000-INITIALIZE-PARA                                 01180000
+012200        THRU 1000-INITIALIZE-PARA-EXIT                            01190000
+012300                                                                  01200000
+012400     PERFORM 2000-PROCESS-PARA                                    01210000
+012500        THRU 2000-PROCESS-PARA-EXIT                               01220000
+012700                                                                  01231003
+012800     PERFORM 4000-CURSOR-CLOSE-PARA                               01240000
+012900        THRU 4000-CURSOR-CLOSE-PARA-EXIT                          01250000
+013000                                                                  01231003
+013100     PERFORM 5000-DISPLAY-PARA                                    01240000
+013200        THRU 5000-DISPLAY-PARA-EXIT                               01250000
+013300                                                                  01231003
+013400     PERFORM 9100-TERMINATION-PARA                                01240000
+013500        THRU 9100-TERMINATION-PARA-EXIT.                          01250000
+013800 0000-MAINLINE-EXIT.                                              01290000
+013900     EXIT.                                                        01320001
+032200*----------------------------------------------------------------*
+032300 1000-INITIALIZE-PARA.
+032501      INITIALIZE DCLAPPLICANT-DB.
+032502      INITIALIZE DCLPAYMENT-DB.
+015200     PERFORM 1100-OPEN-FILE-PARA                                  01451001
+015300        THRU 1100-OPEN-FILE-PARA-EXIT.                            01452001
+032600
+032700 1000-INITIALIZE-PARA-EXIT.
+032800     EXIT.
+032900*----------------------------------------------------------------*
+020300 2000-PROCESS-PARA.                                               01881001
+020400                                                                  01882002
+020500      PERFORM 2100-OPEN-CURSOR THRU 2100-EXIT.                    01890303
+020600      PERFORM 2200-FETCH-CURSOR THRU 2200-FETCH-CURSOR-EXIT       01890403
+020700                   UNTIL WW-END-OF-TABLE.
+022200 2000-PROCESS-PARA-EXIT.                                          01900000
+022300     EXIT.                                                        01930003
+035200*----------------------------------------------------------------*
+022400 2100-OPEN-CURSOR.
+022500      DISPLAY 'OPEN CURSOR'
+022600      EXEC SQL
+022700        OPEN C1
+022800      END-EXEC
+022900      MOVE SQLCODE TO WW-SQL-ERR-CODE
+023000      EVALUATE TRUE
+023100      WHEN WW-SQL-OPERATION-SUCCESS
+023110        DISPLAY 'CURSOR OPENED SUCCESSFULLY'
+023120      WHEN OTHER
+023130        DISPLAY 'CURSOR OPENED FAILED'
+023140        DISPLAY WW-SQL-ERR-CODE
+023150        PERFORM 9000-SQLERROR-PARA THRU 9000-EXIT
+023160        PERFORM 9100-TERMINATION-PARA THRU
+023170              9100-TERMINATION-PARA-EXIT
+023180      END-EVALUATE.
+       2100-EXIT.
+           EXIT.
+040910*----------------------------------------------------------------*
+023203 1100-OPEN-FILE-PARA.
+023204     OPEN OUTPUT OUTFILE
+023205     EVALUATE TRUE
+023206      WHEN PS1-FILE-OPENED
+023207           DISPLAY 'OUTPUT FILE IS OPENED '
+023208      WHEN OTHER
+023209           DISPLAY ' ERROR IN OPENINGSOUTPUTFILE 'WS-OUT-FS
+023211           PERFORM 9100-TERMINATION-PARA THRU
+023212              9100-TERMINATION-PARA-EXIT
+023213     END-EVALUATE.
+023224 1100-OPEN-FILE-PARA-EXIT.
+023225     EXIT.
+      *----------------------------------------------------------------*
+041000 2200-FETCH-CURSOR.
+041100       DISPLAY 'FETCH CURSOR PARA'
+041200       EXEC SQL
+041300        FETCH C1 INTO
+041400          :A-APPLICANT-ID,:A-LOAN-ID,:PREVIOUS-BAL-AMT,
+                :COLLECTION,:CURRENT-BAL-AMT,:AMOUNT-PAID-DATE,
+                :AMMOUNT-PAID,
+                :L-APPLICANT-ID,:LOAN-INDICATOR,:BALANCE-AMOUNT
+042300       END-EXEC.
+023400     MOVE SQLCODE TO WW-SQL-ERR-CODE
+023500     EVALUATE TRUE
+023510     WHEN WW-SQL-OPERATION-SUCCESS
+023520       DISPLAY 'DATA FETCH SUCCESS'
+023530       ADD 1 TO WA-FETCH-COUNT
+               PERFORM 2300-UPDATE-PARA THRU 2300-EXIT
+023550     WHEN WW-END-OF-TABLE
+023560        PERFORM 4000-CURSOR-CLOSE-PARA THRU
+023570                4000-CURSOR-CLOSE-PARA-EXIT
+023560        PERFORM 5000-DISPLAY-PARA THRU
+023570                5000-DISPLAY-PARA-EXIT
+023560        PERFORM 9100-TERMINATION-PARA THRU
+023570                9100-TERMINATION-PARA-EXIT
+023580     WHEN OTHER
+023590        DISPLAY WW-SQL-ERR-CODE
+023591        PERFORM 9000-SQLERROR-PARA THRU 9000-EXIT
+023593        PERFORM 9100-TERMINATION-PARA THRU
+023594                9100-TERMINATION-PARA-EXIT
+023595     END-EVALUATE.
+042400 2200-FETCH-CURSOR-EXIT.
+042500      EXIT.
+044302*----------------------------------------------------------------*
+044303 2300-UPDATE-PARA.
+            DISPLAY CURRENT-BAL-AMT
+044304      DISPLAY 'UPDATE PARA'
+044305      COMPUTE BALANCE-AMOUNT = CURRENT-BAL-AMT - AMMOUNT-PAID.
+            DISPLAY BALANCE-AMOUNT
+044306      MOVE AMOUNT-PAID-DATE(1:4) TO WS-YEAR.
+044307      MOVE AMOUNT-PAID-DATE(6:2) TO WS-MON.
+044308      MOVE AMOUNT-PAID-DATE(9:2) TO WS-DAY.
+044312      COMPUTE WS-MON = WS-MON + 1.
+044313      STRING WS-YEAR '-' WS-MON '-' WS-DAY DELIMITED BY SIZE INTO
+044320      WS-DATE
+            DISPLAY WS-DATE
+      *----------------------------------------------------------------*
+      *--------UPDATING LOAN INDICATOR,REPAYMENT DUE DATE AND----------*
+      *------------------BALANCE AMOUNT--------------------------------*
+044321      IF CURRENT-BAL-AMT < 1000
+S44322       EXEC SQL
+044323       UPDATE LOAN_DB
+044324       SET LOAN_INDICATOR = 'CLOSE',
+044325       NEXT_REPAYMENT_DUE_DATE = :WS-DATE,
+044326       BALANCE_AMOUNT = :BALANCE-AMOUNT
+044327       WHERE APPLICANT_ID = :A-APPLICANT-ID
+044328       END-EXEC
+044329      ELSE
+044330       EXEC SQL
+044331       UPDATE LOAN_DB
+044332       SET LOAN_INDICATOR = 'OPEN',
+044325       NEXT_REPAYMENT_DUE_DATE = :WS-DATE,
+044334       BALANCE_AMOUNT = :BALANCE-AMOUNT
+044335       WHERE APPLICANT_ID = :A-APPLICANT-ID
+044336       END-EXEC
+044338      END-IF
+024792     MOVE SQLCODE                     TO WW-SQL-ERR-CODE.
+024793     EVALUATE TRUE
+024794     WHEN WW-SQL-OPERATION-SUCCESS
+                ADD 1 TO WA-UPDATE-COUNT
+               PERFORM 2400-WRITE-PARA THRU 2400-EXIT
+024798     WHEN OTHER
+024799     DISPLAY WW-SQL-ERR-CODE
+024800     PERFORM 9000-SQLERROR-PARA
+024801             THRU    9000-EXIT
+024802     PERFORM 9100-TERMINATION-PARA
+024803            THRU    9100-TERMINATION-PARA-EXIT
+024804     END-EVALUATE.
+044347 2300-EXIT.
+044348      EXIT.
+      *---------------------------------------------------------------*
+044400 2400-WRITE-PARA.
+             MOVE SPACES TO OUT-FILE-DETAILS
+044500       DISPLAY 'WRITE PARA'
+044600*    CALL 'SUBPGM' USING WS-VARIABLES
+044700*     ON EXCEPTION
+044800*     MOVE 17 TO RETURN-CODE
+044900*     NOT ON EXCEPTION
+044901*          DISPLAY 'PROGRAM SUCCESS'
+044902     MOVE A-APPLICANT-ID    TO WS-OUT-APP-ID.
+045500     MOVE A-LOAN-ID           TO WS-OUT-LOAN-ID.
+045610     MOVE BALANCE-AMOUNT    TO WS-TOTAL-AMOUNT.
+045600     MOVE COLLECTION        TO WS-OUT-COLLECTION.
+045700     WRITE OUT-FILE-DETAILS.
+045701     EVALUATE TRUE
+045702        WHEN PS1-FILE-OPENED
+045703            DISPLAY 'INPUT WRITTEN SUCCESSFULLY...'
+045704        WHEN OTHER
+045705            DISPLAY 'FILE WRITTEN ERROR  : '
+029200             PERFORM 9100-TERMINATION-PARA THRU                   02440000
+029300                     9100-TERMINATION-PARA-EXIT                   02450000
+045709     END-EVALUATE.
+045710 2400-EXIT.
+045711     EXIT.
+044349*----------------------------------------------------------------*
+027900 4000-CURSOR-CLOSE-PARA.                                          02810000
+027910     EXEC SQL
+027920        CLOSE C1
+027930     END-EXEC.
+028000                                                                  02830000
+028100*-*-*-*-*- < CLOSE CURSOR HERE >                                  01650000
+028200                                                                  02870000
+028300     MOVE SQLCODE                     TO WW-SQL-ERR-CODE.         02130006
+028400                                                                  02140000
+028500     EVALUATE TRUE                                                02190000
+028600        WHEN WW-SQL-OPERATION-SUCCESS                             02200000
+028700             DISPLAY 'CURSOR CLOSED SUCCESS'                      02210004
+028710             PERFORM 6100-CLOSE-FILE THRU 6100-CLOSE-FILE-EXIT
+028800        WHEN OTHER                                                02400000
+028900             DISPLAY WW-SQL-ERR-CODE                              02210004
+029000             PERFORM 9000-SQLERROR-PARA THRU                      02420000
+029100                     9000-EXIT                                    02430000
+029200             PERFORM 9100-TERMINATION-PARA THRU                   02440000
+029300                     9100-TERMINATION-PARA-EXIT                   02450000
+029400     END-EVALUATE.                                                02460000
+030000 4000-CURSOR-CLOSE-PARA-EXIT.                                     02960000
+030100     EXIT.                                                        02990006
+044366*----------------------------------------------------------------*
+045720 6100-CLOSE-FILE.
+046800
+046900     CLOSE OUTFILE
+030192     EVALUATE TRUE
+030193      WHEN PS1-FILE-OPENED
+030194           DISPLAY '  FILE IS CLOSED '
+030195      WHEN OTHER
+030196           DISPLAY ' ERROR IN CLOSING FILE '
+030197           PERFORM 9100-TERMINATION-PARA THRU
+030198                   9100-TERMINATION-PARA-EXIT
+030199     END-EVALUATE.
+048900 6100-CLOSE-FILE-EXIT.
+049000      EXIT.
+      *---------------------------------------------------------------*
+030220 9000-SQLERROR-PARA.
+030230      CALL 'DSNTIAR' USING  SQLCA , WW-ERR-MSG,
+030240                                 WW-ERR-LRECL.
+030250            IF RETURN-CODE = 0
+030260                PERFORM VARYING WS-INX FROM 1 BY 1
+030270                                      UNTIL WS-INX > 7
+030280                DISPLAY WW-ERR-TEXT(WS-INX)
+030290            END-PERFORM
+030291            END-IF.
+030292 9000-EXIT.
+030293        EXIT.
+030300******************************************************************03011006
+030400* THIS PARA WILL DISPLAY THE SUMMARY OF REPORT                    03012006
+030500******************************************************************03013006
+030600 5000-DISPLAY-PARA.                                               03014006
+030700                                                                  03015006
+030800     DISPLAY '************************************'               03016006
+030900     DISPLAY '******   SUMMARY OF REPORT    ******'               03017006
+031000     DISPLAY '************************************'               03017106
+031100     DISPLAY ' TOTAL FETCH COUNT  :' WA-FETCH-COUNT               03018006
+031400     DISPLAY ' TOTAL UPDATE COUNT :' WA-UPDATE-COUNT              03018306
+031600     DISPLAY '************************************'.              03018506
+031700                                                                  03019606
+031800 5000-DISPLAY-PARA-EXIT.                                          03019906
+031900     EXIT.                                                        03020206
+032000*                                                                 03020306
+032100************************************************************      03030000
+032200* THIS PARA TERMINATE THE PROGRAM                                 03040000
+032300************************************************************      03050000
+032400 9100-TERMINATION-PARA.                                           03080000
+032500                                                                  03100000
+032600     STOP RUN.                                                    03110000
+032700                                                                  03120000
+032800 9100-TERMINATION-PARA-EXIT.                                      03140000
+032900     EXIT.                                                        03170000
+033000************************************************************      03180006
+033100*                  E N D   O F   P R O G R A M             *      03190006
+033200************************************************************      03200006
+049010*----------------------------------------------------------------*
+

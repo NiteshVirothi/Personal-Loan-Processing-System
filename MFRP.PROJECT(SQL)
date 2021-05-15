@@ -1,0 +1,3 @@
+   SELECT * FROM PAYMENT_DB;                                            00010010
+   SELECT * FROM LOAN_DB;                                               00020010
+

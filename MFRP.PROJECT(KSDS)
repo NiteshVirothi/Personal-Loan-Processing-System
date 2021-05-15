@@ -1,0 +1,24 @@
+//TCHN197# JOB MSGCLASS=X,CLASS=B,
+// MSGLEVEL=(1,1),REGION=0M,TIME=(5,0),PRTY=15,NOTIFY=&SYSUID
+//STEP1000 EXEC PGM=IDCAMS
+//SYSPRINT DD SYSOUT=*
+//SYSOUT   DD SYSOUT=*
+//SYSIN    DD *
+  DELETE TCHN197.GROUP4.MFRP.KSDS -
+         CLUSTER
+         IF LASTCC = 08 THEN
+          SET MAXCC = 00
+  DEFINE CLUSTER (NAME(TCHN197.GROUP4.MFRP.KSDS) -
+                  INDEXED -
+                  KEYS (10 0) -
+                  RECORDSIZE (300 300)-
+                  TRACK (10 20)-
+                  REUSE-
+                  FREESPACE (20 20) -
+                  )-
+                  DATA (NAME(TCHN197.GROUP4.MFRP.KSDS.DATA) -
+                  ) -
+                  INDEX (NAME(TCHN197.GROUP4.MFRP.KSDS.INDEX) -
+                  )
+/*
+

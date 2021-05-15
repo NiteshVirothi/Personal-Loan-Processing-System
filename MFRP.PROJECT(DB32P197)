@@ -1,0 +1,33 @@
+      ******************************************************************
+      * DCLGEN TABLE(PAYMENT_DB)                                       *
+      *        LIBRARY(TCHN197.MFRP.PROJECT(DB32P197))                 *
+      *        LANGUAGE(COBOL)                                         *
+      *        QUOTE                                                   *
+      * ... IS THE DCLGEN COMMAND THAT MADE THE FOLLOWING STATEMENTS   *
+      ******************************************************************
+           EXEC SQL DECLARE PAYMENT_DB TABLE
+           ( APPLICANT_ID                   CHAR(10) NOT NULL,
+             LOAN_ID                        CHAR(2) NOT NULL,
+             AMMOUNT_PAID                   INTEGER,
+             AMOUNT_PAID_DATE               DATE,
+             PREVIOUS_BAL_AMT               INTEGER,
+             CURRENT_BAL_AMT                INTEGER,
+             COLLECTION                     CHAR(11),
+             RECEIPT_NUMBER                 CHAR(10)
+           ) END-EXEC.
+      ******************************************************************
+      * COBOL DECLARATION FOR TABLE PAYMENT_DB                         *
+      ******************************************************************
+       01  DCLPAYMENT-DB.
+           10 A-APPLICANT-ID         PIC X(10).
+           10 A-LOAN-ID              PIC X(2).
+           10 AMMOUNT-PAID         PIC S9(9) USAGE COMP.
+           10 AMOUNT-PAID-DATE     PIC X(10).
+           10 PREVIOUS-BAL-AMT     PIC S9(9) USAGE COMP.
+           10 CURRENT-BAL-AMT      PIC S9(9) USAGE COMP.
+           10 COLLECTION           PIC X(11).
+           10 RECEIPT-NUMBER       PIC X(10).
+      ******************************************************************
+      * THE NUMBER OF COLUMNS DESCRIBED BY THIS DECLARATION IS 8       *
+      ******************************************************************
+

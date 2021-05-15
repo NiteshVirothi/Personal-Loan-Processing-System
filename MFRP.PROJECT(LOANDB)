@@ -1,0 +1,16 @@
+DROP TABLE LOAN_DB;                                                     00001004
+CREATE TABLE LOAN_DB (                                                  00010000
+ APPLICANT_ID                   CHAR(10) NOT NULL PRIMARY KEY,          00020000
+ LOAN_ID                        CHAR(2) NOT NULL,                       00030000
+ LOAN_TYPE                      CHAR(10) NOT NULL,                      00040002
+ APPROVED_LOAN_AMOUNT           INTEGER NOT NULL,                       00070000
+ LOAN_APPROVED_DATE             DATE NOT NULL,                          00080000
+ LOAN_TENURE                    CHAR(2) NOT NULL,                       00090000
+ FIXED_INTEREST_RATE            DECIMAL(3, 1) NOT NULL,                 00100000
+ LOAN_INDICATOR                 CHAR(5),                                00110000
+ RE_PAYMENT_DAY                 CHAR(2) NOT NULL,                       00120000
+ TOTAL_REPAYMENT_AMOUNT         INTEGER NOT NULL,                       00130000
+ MONTHLY_REPAYMENT_AMOUNT       DECIMAL(9, 2) NOT NULL,                 00140000
+ NEXT_REPAYMENT_DUE_DATE        DATE NOT NULL,                          00150000
+ BALANCE_AMOUNT                 INT    NOT NULL );                      00160005
+

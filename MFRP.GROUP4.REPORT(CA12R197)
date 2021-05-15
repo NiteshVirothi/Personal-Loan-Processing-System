@@ -1,0 +1,400 @@
+000100 IDENTIFICATION DIVISION.                                         00010000
+000200 PROGRAM-ID. CB12R197.                                            00020000
+000300 AUTHOR. COGNIZANT                                                00030000
+000400 DATE-WRITTEN. 03-MAY-2021                                        00040000
+000500 ENVIRONMENT DIVISION.                                            00050000
+000600 CONFIGURATION SECTION.                                           00060000
+000700 INPUT-OUTPUT SECTION.                                            00070000
+000800 FILE-CONTROL.                                                    00080000
+000900*----------------------------------------------------------------*00090000
+001000     SELECT INPREP ASSIGN             TO INPPS                    00100000
+001100     ORGANIZATION IS SEQUENTIAL                                   00110000
+001200     FILE STATUS IS WS-PS1-STATUS.                                00120000
+001300*----------------------------------------------------------------*00090000
+001400     SELECT OUTREP ASSIGN             TO OUTPS                    00140000
+001500     ORGANIZATION IS SEQUENTIAL                                   00150000
+001600     FILE STATUS IS WS-PS2-STATUS.                                00160000
+001700*----------------------------------------------------------------*00170000
+001800 DATA DIVISION.                                                   00180000
+001900 FILE SECTION.                                                    00190000
+002000                                                                  00200000
+010400 FD INPREP                                                        00210000
+010500            LABEL RECORDS ARE STANDARD                            00220000
+010600            RECORDING MODE IS F                                   00230000
+010700            RECORD CONTAINS 80 CHARACTERS.                        00240000
+010800 01 WS-INP-REC.                                                   00380000
+010900    05 WS-COLLECTION           PIC X(11).                         00390000
+011000    05 FILLER                     PIC X VALUE SPACES.             00400000
+011100    05 WS-APPLICANT-ID         PIC X(10).                         00410000
+011200    05 FILLER                     PIC X VALUE SPACES.             00420000
+011300    05 WS-LOAN-ID              PIC X(02).                         00430000
+011400    05 FILLER                     PIC X VALUE SPACES.             00440000
+013100    05 WS-AMOUNT-PAID          PIC 9(10).                         00610000
+013200    05 FILLER                     PIC X VALUE SPACES.             00620000
+013300    05 WS-AMOUNT-PAID-DATE     PIC X(10).                         00630000
+013400    05 FILLER                     PIC X VALUE SPACES.             00640000
+013500    05 WS-RECEIPT-NUMBER       PIC X(10).                         00650000
+013600    05 FILLER                     PIC X(21) VALUE SPACES.         00680000
+013601                                                                  00260000
+013602 FD OUTREP                                                        00270000
+013603     RECORD CONTAINS 80 CHARACTERS                                00280000
+013604     RECORDING MODE IS F.                                         00290000
+013605 01 REPREC                        PIC X(80).                      00300000
+013606*----------------------------------------------------------------*00090000
+013607 WORKING-STORAGE SECTION.                                         00320000
+013608 01 WS-PS1-STATUS         PIC X(02).                              00330000
+013609    88 WS-PS1-SUCCESS    VALUE '00'.                              00340000
+013610    88 WS-PS1-EOF        VALUE '10'.                              00350000
+013611 01 WS-PS2-STATUS       PIC X(02).                                00360000
+013612     88 WS-PS2-SUCCESS    VALUE '00'.                             00370000
+013613                                                                  00690000
+013614*----------------------------------------------------------------*00090000
+013615 01 WS-REP-REC.                                                   00700000
+013616    05 WS-REP-APP-ID    PIC   X(10).                              00710000
+013617    05 FILLER           PIC X(03) VALUE SPACES.                   00720000
+013618    05 WS-REP-APP-NAME  PIC  X(32).                               00730000
+013619    05 FILLER           PIC  X(03) VALUE SPACES.                  00740000
+013620    05 WS-REP-AMOUNT-PAID    PIC 9(10).                           00770000
+013621    05 FILLER           PIC   X(03) VALUE SPACES.                 00780000
+013622    05 WS-REP-RECEIPT-NUMBER   PIC X(10).                         00790000
+013623    05 FILLER                     PIC X(08) VALUE SPACES.         00800000
+013624*---------------------------------------------------------------* 00810000
+013625 01 WS-HEADER-REC.                                                00820000
+013626    05 FILLER               PIC   X(16) VALUE SPACES.             00830000
+013627    05 FILLER         PIC X(21) VALUE 'PAYMENT DETAIL REPORT'.    00840000
+013628    05 FILLER               PIC   X(43) VALUE SPACES.             00850000
+013629*---------------------------------------------------------------* 00860000
+013630 01 WS-PAGE-1-REC.                                                00870000
+013631    05 FILLER           PIC X(05) VALUE 'DATE:'.                  00880000
+013632    05 WS-CURR-DATE       PIC    X(08).                           00890000
+013633    05 FILLER        PIC   X(36) VALUE SPACES.                    00900000
+013634    05 FILLER        PIC  X(05) VALUE 'PAGE:'.                    00910000
+013635    05 WS-PG-NO      PIC  9(02) VALUE 00.                         00920000
+013636    05 FILLER        PIC  X(24) VALUE SPACES.                     00930000
+013637*----------------------------------------------------------------*00940000
+013638 01 WS-PAGE-1-2-REC.                                              00950000
+013639    05 FILLER        PIC   X(05)  VALUE 'TIME:'.                  00960000
+013640    05 WS-CURR-TIME     PIC   X(08).                              00970000
+013641    05 FILLER           PIC   X(36) VALUE SPACES.                 00980000
+013642    05 FILLER           PIC   X(10) VALUE 'REPORT ID:'.           00990000
+013643    05 WS-REPORT-ID     PIC  9(04)  VALUE 1012.                   01000000
+013644    05 FILLER           PIC  X(17) VALUE SPACES.                  01010000
+013645*----------------------------------------------------------------*01020000
+013646 01 WS-HEADER.
+013647    05 FILLER           PIC X(17) VALUE 'COLLECTION AGENT:'.
+013648    05 WS-COLLECTION-AGENT    PIC  X(03) VALUE 'CI1'.
+013649*----------------------------------------------------------------*01020000
+013650 01 WS-PAGE-REC.                                                  01030000
+013651    05 FILLER         PIC X(49) VALUE SPACES.                     01040000
+013652    05 FILLER         PIC   X(05) VALUE 'PAGE:'.                  01050000
+013653    05 WS-PAGE-NO      PIC  9(02).                                01060000
+013654    05 FILLER         PIC  X(10)  VALUE SPACES.                   01070000
+013655*----------------------------------------------------------------*01080000
+013656 01 WS-PAGE-REC-1.                                                01090000
+013657    05 FILLER          PIC  X(49) VALUE SPACES.                   01100000
+013658    05 FILLER          PIC  X(10) VALUE 'REPORT ID:'.             01110000
+013659    05 WS-REPORT-ID    PIC 9(04) VALUE 1012.                      01120000
+013660    05 FILLER          PIC X(17) VALUE SPACES.                    01130000
+013661*-----------------------------------------------------------*     01140000
+013662 01 WS-PAGE-HEADER.                                               01150000
+013663    05 FILLER          PIC X(12)  VALUE 'APPLICANT_ID'.           01160000
+013664    05 FILLER          PIC  X(01) VALUE SPACES.                   01170000
+013665    05 FILLER          PIC  X(32) VALUE 'NAME'.                   01180000
+013666    05 FILLER          PIC  X(01) VALUE SPACES.                   01190000
+013667    05 FILLER          PIC  X(08) VALUE 'AMT PAID'.               01200000
+013668    05 FILLER          PIC  X(05) VALUE SPACES.                   01210000
+013669    05 FILLER          PIC  X(10) VALUE 'RECEIPT NO'.             01220000
+013670    05 FILLER          PIC  X(10) VALUE SPACES.                   01210000
+013671*------------------------------------------------------------*    01260000
+013672 01 WS-PAGE-FOOTER.                                               01270000
+013673    05 FILLER     PIC   X(23)  VALUE SPACES.                      01280000
+013674    05 FILLER    PIC  X(24) VALUE '-------END OF PAGE------'.     01290000
+013675    05 FILLER    PIC  X(33) VALUE SPACES.                         01300000
+013676*-------------------------------------------------------------*   01310000
+013677 01 WS-REPORT-FOOTER.                                             01320000
+013678    05 FILLER     PIC   X(23)  VALUE SPACES.                      01330000
+013679    05 FILLER    PIC  X(24) VALUE '-------END OF REPORT----'.     01340000
+013680    05 FILLER    PIC  X(33) VALUE SPACES.                         01350000
+013681*--------------------------------------------------------------*  01360000
+013682 01 WS-DATE.                                                      01370000
+013683    05 WS-CCYY    PIC   9(04).                                    01380000
+013684    05 WS-MM     PIC  9(02).                                      01390000
+013685    05 WS-DD     PIC  9(02).                                      01400000
+013686*---------------------------------------------------------------* 01410000
+013687 01 WS-TIME.                                                      01420000
+013688    05 WS-HR      PIC   9(02).                                    01430000
+013689    05 FILLER     PIC  X(01) VALUE ':'.                           01440000
+013690    05 WS-MIN    PIC  9(02).                                      01450000
+013691    05 FILLER    PIC  X(01) VALUE ':'.                            01460000
+013692    05 WS-SEC    PIC  9(02).                                      01470000
+013693*---------------------------------------------------------------* 01480000
+013694 01 WS-SPACE.                                                     01490000
+013695    05 FILLER    PIC  X(11) VALUE '-----------'.                  01500000
+013696    05 FILLER    PIC  X(02) VALUE SPACES.                         01510000
+013697    05 FILLER    PIC  X(11) VALUE '-----------'.                  01520000
+013698    05 FILLER    PIC  X(22) VALUE SPACES.                         01530000
+013699    05 FILLER    PIC  X(10) VALUE '----------'.                   01560000
+013700    05 FILLER    PIC  X(02) VALUE SPACES.                         01570000
+013800    05 FILLER    PIC  X(10) VALUE '----------'.                   01580001
+013801    05 FILLER    PIC  X(12) VALUE SPACES.                         01590000
+013802*----------------------------------------------------------------*01600000
+013803 01 WS-BLANK-REC      PIC X(80) VALUE SPACES.                     01610000
+013804 01 WS-LINE-COUNTER   PIC 9(02) VALUE 00.                         01620000
+013805 01 WS-PAGE-COUNTER   PIC 9(02) VALUE 01.                         01630000
+013806******************************************************************00541900
+013807*VARIABLES TO HOLD SQL ERROR CODES & ERROR MESSAGES               00542000
+013808******************************************************************00542100
+013809 01 WS-DB2-ERR-MSG.                                               00542200
+013810    05 WS-DB2-ERR-MSG-LEN            PIC S9(4) COMP VALUE +560.   00542300
+013811    05 WS-DB2-ERR-MSG-TEXT          PIC X(80)                     00542400
+013812                          OCCURS 07 TIMES INDEXED BY WS-INX.      00542500
+013813 01 WS-DB2-ERRMSG-LINE-LEN           PIC S9(9) COMP VALUE +80.    00542600
+013814*                                                                 00542700
+013815 01 WW-SQLCODE-DEF.                                               00542800
+013816     05 WW-SQLCODE-CODE                  PIC S9(3)                00542900
+013817                                            SIGN LEADING SEPARATE.00543000
+013818     05 WW-SQL-ERR-CODE                 PIC  S9(3)                00543100
+013819                                            SIGN LEADING SEPARATE.00543200
+013820           88 WW-END-OF-TABLE              VALUE +100.            00543300
+013830           88 WW-SQL-OPERATION-SUCCESS     VALUE +000.            00550000
+013831 01 WS-NAME              PIC X(32).
+013832******************************************************************00540600
+013833*    ACCUMULATOR VARIABLE DECLARATION                             00540700
+013834******************************************************************00540800
+013835 01 WA-ACCUMULATOR.                                               00540900
+013836     05 WA-FETCH-COUNT                   PIC S9(9) COMP VALUE 0.  00541003
+013837*                                                                 00590102
+013838******************************************************************00740000
+013839*    I N C L U D E  D C L G E N                                   00750000
+013840******************************************************************00760000
+013841*                                                                 00770000
+013842*                                                                 00850000
+013843     EXEC SQL                                                     00860000
+013844        INCLUDE SQLCA                                             00870000
+013845     END-EXEC.                                                    00880000
+013846*                                                                 00890000
+013847     EXEC SQL                                                     00900003
+013848         INCLUDE DB12P197                                         00910003
+013849     END-EXEC.                                                    00920003
+013850                                                                  00970003
+013851 PROCEDURE DIVISION.                                              01640000
+013852*----------------------------------------------------------------*01650000
+013853 0000-MAINPARA.                                                   01240300
+013854                                                                  01240401
+013855     PERFORM 1000-INITIALIZE-PARA                                 01240500
+013856        THRU 1000-INITIALIZE-PARA-EXIT.                           01240600
+013900                                                                  01240700
+014000     PERFORM 2000-PROCESS-PARA                                    01240800
+014100        THRU 2000-PROCESS-PARA-EXIT.                              01240900
+014200                                                                  01241003
+014600     PERFORM 3000-DISPLAY-PARA                                    01250200
+014700        THRU 3000-DISPLAY-PARA-EXIT.                              01250300
+014701
+014702     PERFORM 4000-CLOSE-PARA                                      01242000
+014703        THRU 4000-CLOSE-PARA-EXIT.                                01250000
+014704                                                                  01250103
+015000                                                                  01250603
+015100     PERFORM 9100-TERMINATION-PARA                                01250700
+015200        THRU 9100-TERMINATION-PARA-EXIT.                          01250800
+015300        STOP RUN.                                                 01250903
+015400                                                                  01270001
+015500 0000-MAINPARA-EXIT.                                              01290000
+015600     EXIT.                                                        01320001
+015601*----------------------------------------------------------------*00090000
+015602 1000-INITIALIZE-PARA.                                            01760000
+015603        INITIALIZE WS-REP-REC.                                    01770000
+016200     PERFORM 1100-OPEN-FILES                                      01451001
+016300        THRU 1100-OPEN-FILES-EXIT.                                01452001
+016301 1000-INITIALIZE-PARA-EXIT.                                       01780000
+016302        EXIT.                                                     01790000
+016303*----------------------------------------------------------------*00090000
+016600 2000-PROCESS-PARA.                                               01561001
+016601       PERFORM 2200-READ-PARA  THRU                               01830000
+016602               2200-READ-PARA-EXIT  UNTIL WS-PS1-EOF.             01840000
+017200 2000-PROCESS-PARA-EXIT.                                          01871001
+017300     EXIT.                                                        01874003
+017301*----------------------------------------------------------------*00090000
+017302 1100-OPEN-FILES.                                                 01930000
+017303       OPEN INPUT INPREP                                          01940000
+017304          EVALUATE TRUE                                           01950000
+017305            WHEN WS-PS1-SUCCESS                                   01960000
+017306                DISPLAY 'INPUT OPEN SUCCESS'                      01970000
+017307            WHEN OTHER                                            01980000
+017308                 DISPLAY 'INPUT OPEN FAIL:' WS-PS1-STATUS         01990000
+017309                 PERFORM 9100-TERMINATION-PARA   THRU             02000000
+017310                         9100-TERMINATION-PARA-EXIT               02010000
+017311          END-EVALUATE                                            02020000
+017312       OPEN OUTPUT OUTREP                                         02030000
+017313          EVALUATE TRUE                                           02040000
+017314            WHEN WS-PS2-SUCCESS                                   02050000
+017315                DISPLAY 'OUTPUTOPEN SUCCESS'                      02060000
+017316            WHEN OTHER                                            02070000
+017317                 DISPLAY 'OUTPUTOPEN FAIL:' WS-PS2-STATUS         02080000
+017318                 PERFORM 9100-TERMINATION-PARA   THRU             02090000
+017319                         9100-TERMINATION-PARA-EXIT               02100000
+017320          END-EVALUATE.                                           02110000
+017321 1100-OPEN-FILES-EXIT.                                            02120000
+017322          EXIT.                                                   02130000
+017323*----------------------------------------------------------------*00090000
+017324 2200-READ-PARA.                                                  02140000
+017400     MOVE SPACES TO WS-INP-REC                                    02150000
+017500     MOVE SPACES TO WS-REP-REC                                    02160000
+017600     READ   INPREP                                                02170000
+017700         EVALUATE TRUE                                            02180000
+017800           WHEN WS-PS1-SUCCESS                                    02190000
+017900      PERFORM 2300-FETCH-CURSOR  THRU 2300-EXIT                   01563003
+018100           WHEN WS-PS1-EOF                                        02220000
+018200                 DISPLAY 'INFILE END OF FILE'                     02230000
+018300           WHEN OTHER                                             02240000
+018400                DISPLAY 'INPFILE READ ERROR:' WS-PS1-STATUS       02250000
+018500                 PERFORM 9100-TERMINATION-PARA   THRU             02260000
+018600                         9100-TERMINATION-PARA-EXIT               02270000
+018700            END-EVALUATE.                                         02280000
+018800 2200-READ-PARA-EXIT.                                             02290000
+018900        EXIT.                                                     02300000
+019000*----------------------------------------------------------------*00090000
+020500 2300-FETCH-CURSOR.                                               02592602
+020501      DISPLAY  WS-APPLICANT-ID
+020502     INITIALIZE DCLAPPLICANT-DB                                   01440002
+020504      MOVE WS-APPLICANT-ID TO APPLICANT-ID
+020505      DISPLAY  APPLICANT-ID
+020600       EXEC SQL                                                   02592703
+020700       SELECT APPLICANT_NAME,
+020710              APPLICANT_ID
+020800        INTO :APPLICANT-NAME,                                     02592903
+020900             :APPLICANT-ID
+021000        FROM APPLICANT_DB
+021100        WHERE APPLICANT_ID = :APPLICANT-ID
+021900        END-EXEC                                                  02630003
+021910        DISPLAY APPLICANT-NAME
+022000        MOVE SQLCODE TO WW-SQL-ERR-CODE                           02640003
+022100        EVALUATE TRUE                                             02650003
+022200        WHEN WW-SQL-OPERATION-SUCCESS                             02660003
+022300          DISPLAY 'DATA FETCH SUCCESS'                            02670003
+022400          ADD 1 TO WA-FETCH-COUNT                                 02680003
+022401               PERFORM 4100-WRITE-PARA   THRU                     02200000
+022402                       4100-WRITE-PARA-EXIT                       02210000
+022500        WHEN WW-END-OF-TABLE
+022600        DISPLAY 'END OF TABLE'
+023400        WHEN OTHER                                                02780003
+023500               DISPLAY WW-SQL-ERR-CODE                            02790003
+023600               PERFORM 9000-SQLERROR-PARA THRU 9000-EXIT          02800003
+023700               PERFORM 9100-TERMINATION-PARA THRU                 02810003
+023800                       9100-TERMINATION-PARA-EXIT                 02820003
+023900        END-EVALUATE.                                             02820103
+024000 2300-EXIT.                                                       02820203
+024100     EXIT.                                                        02820303
+024101*----------------------------------------------------------------*00090000
+024102 4200-CALC-DATE-TIME-PARA.                                        02310000
+024103      MOVE FUNCTION CURRENT-DATE(1:4) TO WS-CCYY                  02320000
+024104      MOVE FUNCTION CURRENT-DATE(5:2) TO WS-MM                    02330000
+024105      MOVE FUNCTION CURRENT-DATE(7:2) TO WS-DD                    02340000
+024106      MOVE FUNCTION CURRENT-DATE(9:2) TO WS-HR                    02350000
+024107      MOVE FUNCTION CURRENT-DATE(11:2) TO WS-MIN                  02360000
+024108      MOVE FUNCTION CURRENT-DATE(13:2) TO WS-SEC.                 02370000
+024109 4200-CALC-DATE-TIME-PARA-EXIT.                                   02380000
+024110        EXIT.                                                     02390000
+024111*----------------------------------------------------------------*00090000
+024112 4100-WRITE-PARA.                                                 02400000
+024113        MOVE APPLICANT-NAME   TO  WS-NAME
+024114        EVALUATE TRUE                                             02410000
+024115          WHEN WS-PAGE-COUNTER = 01 AND WS-LINE-COUNTER = 00      02420000
+024116               PERFORM 4200-CALC-DATE-TIME-PARA THRU              02430000
+024117                       4200-CALC-DATE-TIME-PARA-EXIT              02440000
+024118             MOVE WS-DATE     TO   WS-CURR-DATE                   02450000
+024119             MOVE WS-TIME     TO   WS-CURR-TIME                   02460000
+024120         MOVE WS-PAGE-COUNTER TO WS-PG-NO                         02470000
+024121         WRITE REPREC FROM WS-HEADER-REC                          02480000
+024122         WRITE REPREC FROM WS-BLANK-REC                           02490000
+024123         WRITE REPREC FROM WS-BLANK-REC                           02500000
+024124         WRITE REPREC FROM WS-PAGE-1-REC                          02510000
+024125         WRITE REPREC FROM WS-PAGE-1-2-REC                        02520000
+024126         WRITE REPREC FROM WS-BLANK-REC                           02530000
+024127         WRITE REPREC FROM WS-BLANK-REC                           02530000
+024128         WRITE REPREC FROM WS-HEADER                              02540000
+024129         WRITE REPREC FROM WS-PAGE-HEADER                         02540000
+024130         WRITE REPREC FROM WS-BLANK-REC                           02550000
+024131         WRITE REPREC FROM WS-SPACE                               02560000
+024132          WHEN WS-PS1-EOF                                         02570000
+024133               CONTINUE                                           02580000
+024134           END-EVALUATE                                           02590000
+024135        EVALUATE TRUE                                             02600000
+024136           WHEN WS-LINE-COUNTER < 8                               02610000
+024137              MOVE WS-APPLICANT-ID  TO  WS-REP-APP-ID             02620000
+024138              MOVE WS-NAME        TO WS-REP-APP-NAME              02630000
+024139              MOVE WS-AMOUNT-PAID    TO WS-REP-AMOUNT-PAID        02650000
+024140              MOVE WS-RECEIPT-NUMBER TO WS-REP-RECEIPT-NUMBER     02660000
+024141              WRITE REPREC FROM WS-REP-REC                        02670000
+024142              DISPLAY WS-REP-REC                                  02840000
+024143              ADD 1 TO WS-LINE-COUNTER                            02680000
+024144              WHEN WS-LINE-COUNTER = 8                            02690000
+024145                 MOVE 00 TO WS-LINE-COUNTER                       02700000
+024146                 ADD 1   TO WS-PAGE-COUNTER                       02710000
+024147                 MOVE WS-PAGE-COUNTER   TO  WS-PAGE-NO            02720000
+024148                 WRITE REPREC FROM   WS-PAGE-FOOTER               02730000
+024149                 WRITE REPREC FROM   WS-PAGE-REC                  02740000
+024150                 WRITE REPREC FROM   WS-PAGE-REC-1                02750000
+024151                 WRITE REPREC FROM   WS-HEADER                    02760000
+024152                 WRITE REPREC FROM   WS-PAGE-HEADER               02760000
+024153                 WRITE REPREC FROM   WS-BLANK-REC                 02770000
+024154                 WRITE REPREC FROM   WS-SPACE                     02780000
+024155              MOVE WS-APPLICANT-ID  TO  WS-REP-APP-ID             02620000
+024156              MOVE WS-NAME        TO WS-REP-APP-NAME              02630000
+024157              DISPLAY     WS-REP-APP-NAME                         02630000
+024158              MOVE WS-AMOUNT-PAID    TO WS-REP-AMOUNT-PAID        02650000
+024159              MOVE WS-RECEIPT-NUMBER TO WS-REP-RECEIPT-NUMBER     02660000
+024160              WRITE REPREC FROM WS-REP-REC                        02840000
+024161              DISPLAY WS-REP-REC                                  02840000
+024162              ADD 1 TO WS-LINE-COUNTER                            02850000
+024163          END-EVALUATE.                                           02860000
+024164 4100-WRITE-PARA-EXIT.                                            02870000
+024200           EXIT.                                                  02880000
+024300*----------------------------------------------------------------*00090000
+035200 3000-DISPLAY-PARA.                                               03100503
+035201        DISPLAY 'FETCH COUNT:' WA-FETCH-COUNT.
+035202 3000-DISPLAY-PARA-EXIT.                                          03100503
+035300     EXIT.                                                        03100603
+035301*----------------------------------------------------------------*00090000
+035302 4000-CLOSE-PARA.                                                 02890000
+035303               WRITE REPREC FROM WS-PAGE-FOOTER                   01850000
+035304                 WRITE REPREC FROM   WS-BLANK-REC                 01860000
+035305                 WRITE REPREC FROM   WS-BLANK-REC                 01870000
+035306               WRITE REPREC FROM WS-REPORT-FOOTER                 01880000
+035307        CLOSE  INPREP                                             02900000
+035308          EVALUATE TRUE                                           02910000
+035309            WHEN WS-PS1-SUCCESS                                   02920000
+035310                DISPLAY 'INPUT CLOSESUCCESS'                      02930000
+035311            WHEN OTHER                                            02940000
+035312                 DISPLAY 'INPUT CLOSEFAIL:' WS-PS1-STATUS         02950000
+035313                 PERFORM 9100-TERMINATION-PARA    THRU            02960000
+035314                         9100-TERMINATION-PARA-EXIT               02970000
+035315          END-EVALUATE                                            02980000
+035316            CLOSE  OUTREP                                         02990000
+035317          EVALUATE TRUE                                           03000000
+035318            WHEN WS-PS2-SUCCESS                                   03010000
+035319                DISPLAY 'OUTPUTCLOSESUCCESS'                      03020000
+035320            WHEN OTHER                                            03030000
+035321                 DISPLAY 'OUTPUTCLOSEFAIL:' WS-PS2-STATUS         03040000
+035322                 PERFORM 9100-TERMINATION-PARA    THRU            02960000
+035323                         9100-TERMINATION-PARA-EXIT               02970000
+035324          END-EVALUATE.                                           03070000
+035325 4000-CLOSE-PARA-EXIT.                                            03080000
+035326        EXIT.                                                     03090000
+035327*----------------------------------------------------------------*00090000
+036500 9000-SQLERROR-PARA.                                              03109003
+036600      CALL 'DSNTIAR' USING  SQLCA , WS-DB2-ERR-MSG,               03110003
+036700                                 WS-DB2-ERRMSG-LINE-LEN.          03120003
+036800            IF RETURN-CODE = 0                                    03130003
+036900                PERFORM VARYING WS-INX FROM 1 BY 1                03140003
+037000                                      UNTIL WS-INX > 7            03150003
+037100                DISPLAY WS-DB2-ERR-MSG-TEXT(WS-INX)               03160003
+037200            END-PERFORM                                           03170003
+037300            END-IF.                                               03180003
+037400 9000-EXIT.                                                       03190003
+037500        EXIT.                                                     03190103
+037501*----------------------------------------------------------------*00090000
+037502 9100-TERMINATION-PARA.                                           03100000
+037503        STOP RUN.                                                 03110000
+037504 9100-TERMINATION-PARA-EXIT.                                      03120000
+037505        EXIT.                                                     03130000
+
